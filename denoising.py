@@ -58,4 +58,31 @@ decoder.summary()
 autoencoder=Model(inputs,decoder(encoder(inputs)),name="autoencoder")
 autoencoder.summary()
 #%%
+autoencoder.compile(loss='mse', optimizer='adam')
 
+autoencoder.fit(x_train_noisy,
+                x_train,
+                validation_data=(x_test_noisy, x_test),
+                epochs=10,
+                batch_size=batch_size)
+#%%
+import matplotlib.pyplot as plt
+from PIL import Image
+
+rows, cols = 3, 9
+num = rows * cols
+imgs = np.concatenate([x_test[:num], x_test_noisy[:num], x_decoded[:num]])
+imgs = imgs.reshape((rows * 3, cols, image_size, image_size))
+print(imgs.shape[:])
+imgs = np.vstack(np.split(imgs, rows, axis=1))
+imgs = imgs.reshape((rows * 3, -1, image_size, image_size))
+imgs = np.vstack([np.hstack(i) for i in imgs])
+imgs = (imgs * 255).astype(np.uint8)
+plt.figure()
+plt.axis('off')
+plt.title('Original images: top rows, '
+          'Corrupted Input: middle rows, '
+          'Denoised Input:  third rows')
+plt.imshow(imgs, interpolation='none', cmap='gray')
+Image.fromarray(imgs).save('corrupted_and_denoised.png')
+plt.show()
